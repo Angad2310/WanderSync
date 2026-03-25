@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WanderSync — Trip Planner</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        :root{
+            --cream:#f9f5ef;--paper:#fff;
+            --terra:#c0614a;--terra-d:#9e4a36;--terra-l:#f2ddd7;
+            --forest:#243d32;--forest-l:#d0ddd9;
+            --gold:#c8923a;--gold-l:#f5e9d2;
+            --ink:#161616;--muted:#78706a;--border:#e4dcd2;
+            --nav-h:68px;
+        }
+        html{scroll-behavior:smooth}
+        body{background:var(--cream);color:var(--ink);font-family:'Outfit',sans-serif;font-weight:400;min-height:100vh}
+
+        /* NAVBAR */
+        .navbar{position:fixed;top:0;left:0;right:0;height:var(--nav-h);z-index:100;display:flex;align-items:center;padding:0 40px;background:rgba(22,22,22,0.35);backdrop-filter:blur(18px) saturate(1.4);-webkit-backdrop-filter:blur(18px) saturate(1.4);border-bottom:1px solid rgba(255,255,255,0.08);transition:background 0.3s}
+        .navbar.scrolled{background:rgba(36,61,50,0.97)}
+        .nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;margin-right:48px;flex-shrink:0}
+        .nav-logo-icon{font-size:22px}
+        .nav-logo-text{font-family:'Playfair Display',serif;font-size:22px;font-weight:900;color:#fff;letter-spacing:-0.3px}
+        .nav-links{display:flex;align-items:center;gap:4px;flex:1}
+        .nav-link{text-decoration:none;color:rgba(255,255,255,0.75);font-size:13.5px;font-weight:500;padding:7px 16px;border-radius:8px;transition:color 0.2s,background 0.2s;letter-spacing:0.1px}
+        .nav-link:hover{color:#fff;background:rgba(255,255,255,0.1)}
+        .nav-link.active{color:#fff;background:rgba(255,255,255,0.12)}
+        .nav-badge{display:inline-flex;align-items:center;background:var(--terra);color:white;font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;margin-left:5px;letter-spacing:0.3px}
+        .nav-right{display:flex;align-items:center;gap:14px;flex-shrink:0}
+        .nav-trip-count{font-size:12px;color:rgba(255,255,255,0.55);background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);padding:5px 12px;border-radius:20px}
+        .nav-trip-count span{color:#f5c98a;font-weight:600}
+        .nav-profile{display:flex;align-items:center;gap:9px;cursor:pointer;padding:5px 5px 5px 12px;border-radius:40px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);transition:background 0.2s}
+        .nav-profile:hover{background:rgba(255,255,255,0.14)}
+        .nav-profile-name{font-size:13px;color:rgba(255,255,255,0.85);font-weight:500}
+        .nav-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--terra) 0%,var(--gold) 100%);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:white}
+
+        /* HERO */
+        .hero{position:relative;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:calc(var(--nav-h) + 40px) 24px 80px;overflow:hidden}
+        .hero-bg{position:absolute;inset:0;background-image:url('https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=1800&auto=format&fit=crop&q=80');background-size:cover;background-position:center;animation:heroZoom 22s ease-in-out infinite alternate}
+        @keyframes heroZoom{from{transform:scale(1.04)}to{transform:scale(1.11)}}
+        .hero-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(10,20,15,0.55) 0%,rgba(10,20,15,0.42) 40%,rgba(10,20,15,0.72) 100%)}
+        .hero-content{position:relative;z-index:2;text-align:center;max-width:720px;width:100%}
+        .hero-eyebrow{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:30px;padding:6px 18px;font-size:12px;color:rgba(255,255,255,0.8);letter-spacing:1.5px;text-transform:uppercase;font-weight:500;margin-bottom:20px}
+        .hero-title{font-family:'Playfair Display',serif;font-size:clamp(42px,6vw,72px);font-weight:900;color:#fff;line-height:1.05;letter-spacing:-1px;margin-bottom:14px}
+        .hero-title em{font-style:italic;color:#f5c98a}
+        .hero-sub{font-size:16px;color:rgba(255,255,255,0.65);margin-bottom:44px;line-height:1.6;font-weight:300}
+
+        /* FORM CARD */
+        .trip-form-card{background:rgba(255,255,255,0.95);backdrop-filter:blur(20px);border-radius:20px;padding:36px 40px;box-shadow:0 24px 80px rgba(0,0,0,0.3),0 2px 8px rgba(0,0,0,0.1);border:1px solid rgba(255,255,255,0.6);text-align:left;animation:formRise 0.7s cubic-bezier(0.22,1,0.36,1) both}
+        @keyframes formRise{from{opacity:0;transform:translateY(30px) scale(0.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+        .form-card-header{margin-bottom:24px}
+        .form-card-header h3{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--forest);margin-bottom:4px}
+        .form-card-header p{font-size:13px;color:var(--muted)}
+        .route-group{display:grid;grid-template-columns:1fr auto 1fr;align-items:end;gap:10px;margin-bottom:14px}
+        .route-arrow{display:flex;align-items:center;justify-content:center;width:36px;height:44px;color:var(--terra);font-size:20px;flex-shrink:0}
+        .form-row-2{display:grid;grid-template-columns:1fr 1fr 1.2fr;gap:14px;margin-bottom:14px}
+        .form-field{display:flex;flex-direction:column;gap:6px}
+        .form-field label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+        .form-field input,.form-field textarea{border:1.5px solid var(--border);border-radius:10px;padding:11px 14px;font-family:'Outfit',sans-serif;font-size:14px;color:var(--ink);background:var(--cream);outline:none;transition:border-color 0.2s,background 0.2s;width:100%}
+        .form-field input:focus,.form-field textarea:focus{border-color:var(--forest);background:#fff}
+        .form-field input::placeholder,.form-field textarea::placeholder{color:#b8b0a6}
+        input[type="date"]::-webkit-calendar-picker-indicator { cursor: pointer; filter: invert(0.4); }
+        .form-field textarea{resize:vertical;min-height:56px}
+        .btn-create-trip{width:100%;background:var(--forest);color:white;border:none;border-radius:12px;padding:15px 24px;font-family:'Outfit',sans-serif;font-size:15px;font-weight:600;cursor:pointer;margin-top:20px;transition:background 0.2s,transform 0.1s,box-shadow 0.2s;display:flex;align-items:center;justify-content:center;gap:8px}
+        .btn-create-trip:hover{background:#1a2e22;box-shadow:0 6px 20px rgba(36,61,50,0.4)}
+        .btn-create-trip:active{transform:scale(0.99)}
+        .hero-scroll-cue{position:absolute;bottom:28px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:6px;color:rgba(255,255,255,0.4);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;z-index:3;animation:cueFloat 2s ease-in-out infinite;cursor:pointer}
+        @keyframes cueFloat{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(6px)}}
+
+        /* OFFERS & SUGGESTIONS */
+        .offers-section { position: relative; background-image: url('https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1800&auto=format&fit=crop&q=80'); background-position: center; background-size: cover; padding: 100px 40px; text-align: center; color: white; }
+        .offers-overlay { position: absolute; inset: 0; background: rgba(10, 20, 15, 0.75); }
+        .offers-content { position: relative; z-index: 2; max-width: 1280px; margin: 0 auto; }
+        .offers-content h2 { font-family: 'Playfair Display', serif; font-size: 38px; margin-bottom: 10px; }
+        .offers-grid { display: flex; gap: 24px; justify-content: center; margin-top: 40px; flex-wrap: wrap; }
+        .offer-card { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 16px; padding: 30px; width: 300px; text-align: left; display: flex; flex-direction: column; transition: transform 0.3s, background 0.3s; }
+        .offer-card:hover { transform: translateY(-5px); background: rgba(255, 255, 255, 0.15); }
+        .offer-badge { background: var(--terra); color: white; display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; margin-bottom: 12px; align-self: flex-start; }
+        .offer-card h3 { font-family: 'Playfair Display', serif; font-size: 22px; margin-bottom: 10px; }
+        .offer-card p { font-size: 14px; line-height: 1.5; color: rgba(255, 255, 255, 0.85); flex: 1; margin-bottom: 20px; }
+        .btn-offer { background: white; color: var(--forest); border: none; padding: 12px 20px; border-radius: 8px; font-family: 'Outfit', sans-serif; font-weight: 600; cursor: pointer; transition: 0.2s; width: 100%; }
+        .btn-offer:hover { background: var(--gold); color: white; }
+
+        .suggestions-section { padding: 80px 40px; background: linear-gradient(135deg, #e4dcd2 0%, #f9f5ef 100%); border-bottom: 1px solid var(--border); }
+        .suggestions-header { max-width: 1280px; margin: 0 auto 30px; }
+        .suggestions-header h2 { font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 800; color: var(--forest); margin-bottom: 6px; letter-spacing: -0.5px; }
+        .suggestions-header p { color: var(--muted); font-size: 15px; }
+        .suggestions-track { display: flex; gap: 24px; overflow-x: auto; padding-bottom: 20px; scroll-snap-type: x mandatory; scrollbar-width: none; max-width: 1280px; margin: 0 auto; }
+        .suggestions-track::-webkit-scrollbar { display: none; }
+        .suggestion-card.glass { min-width: 320px; background: rgba(255, 255, 255, 0.35); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.6); border-radius: 20px; overflow: hidden; box-shadow: 0 8px 32px rgba(36, 61, 50, 0.1); scroll-snap-align: start; display: flex; flex-direction: column; transition: transform 0.3s; }
+        .suggestion-card.glass:hover { transform: translateY(-6px); }
+        .suggestion-card img { width: 100%; height: 190px; object-fit: cover; }
+        .suggestion-info { padding: 24px; display: flex; flex-direction: column; flex: 1; }
+        .suggestion-tag { font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700; color: var(--gold); background: var(--gold-l); padding: 5px 12px; border-radius: 20px; margin-bottom: 14px; align-self: flex-start;}
+        .suggestion-info h4 { font-family: 'Playfair Display', serif; font-size: 24px; color: var(--forest); margin-bottom: 8px; }
+        .suggestion-info p { font-size: 14px; color: var(--muted); line-height: 1.5; flex: 1; }
+        .glass-btn { margin-top: 20px; background: transparent; border: 1.5px solid var(--forest); color: var(--forest); padding: 10px 16px; border-radius: 10px; font-family: 'Outfit', sans-serif; font-weight: 600; font-size: 13.5px; cursor: pointer; transition: all 0.2s; width: 100%; }
+        .glass-btn:hover { background: var(--forest); color: white; }
+
+        /* TRIPS SECTION */
+        .trips-section{padding:80px 40px 100px;max-width:1280px;margin:0 auto}
+        .trips-section-header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:36px;padding-bottom:24px;border-bottom:1px solid var(--border)}
+        .trips-section-header h2{font-family:'Playfair Display',serif;font-size:38px;font-weight:900;color:var(--forest);letter-spacing:-0.5px}
+        .trips-section-header p{font-size:14px;color:var(--muted);margin-top:4px}
+        .trips-count-pill{background:var(--forest-l);color:var(--forest);font-size:13px;font-weight:600;padding:8px 20px;border-radius:30px;white-space:nowrap}
+        .trips-grid{display:flex;flex-direction:column;gap:28px}
+
+        /* TRIP CARD */
+        .trip-card{background:var(--paper);border-radius:18px;border:1px solid var(--border);box-shadow:0 2px 16px rgba(22,22,22,0.06);overflow:hidden;animation:cardIn 0.5s cubic-bezier(0.22,1,0.36,1) both}
+        @keyframes cardIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+        .trip-header{padding:26px 32px 22px;display:flex;align-items:flex-start;justify-content:space-between;gap:20px;background:linear-gradient(135deg,#fafaf8 0%,#fff 100%)}
+        .trip-title-block h3{font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:var(--forest);letter-spacing:-0.3px;line-height:1.15}
+        .trip-origin-arrow{color:var(--terra);font-style:normal}
+        .trip-dates{display:inline-flex;align-items:center;gap:6px;background:var(--forest-l);color:var(--forest);font-size:12px;font-weight:500;padding:4px 12px;border-radius:20px;margin-top:8px}
+        .trip-header-right{display:flex;flex-direction:column;align-items:flex-end;gap:10px;flex-shrink:0}
+        .budget-meta-line{font-size:12px;color:var(--muted);text-align:right}
+        .budget-remaining{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;line-height:1;text-align:right}
+        .budget-remaining.ok{color:var(--forest)}.budget-remaining.warn{color:var(--gold)}.budget-remaining.over{color:var(--terra)}
+        .progress-bar-wrap{width:150px;height:4px;background:var(--border);border-radius:10px;overflow:hidden;margin-top:5px}
+        .progress-bar-fill{height:100%;border-radius:10px}
+        .progress-bar-fill.ok{background:var(--forest)}.progress-bar-fill.warn{background:var(--gold)}.progress-bar-fill.over{background:var(--terra)}
+        .budget-pct{font-size:11px;color:var(--muted);text-align:right}
+        .btn-delete-trip{background:none;border:1px solid var(--border);border-radius:8px;padding:6px 12px;font-size:11px;color:var(--muted);cursor:pointer;font-family:'Outfit',sans-serif;transition:border-color 0.2s,color 0.2s,background 0.2s}
+        .btn-delete-trip:hover{border-color:var(--terra);color:var(--terra);background:var(--terra-l)}
+
+        /* TRIP FOOTER WITH BOOKING BUTTON */
+        .trip-footer {
+            background: #fafaf8;
+            border-top: 1px solid var(--border);
+            padding: 16px 32px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+        .btn-view-trip {
+            display: inline-block;
+            background: var(--forest);
+            color: white;
+            padding: 10px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-family: 'Outfit', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            transition: background 0.2s, transform 0.1s;
+        }
+        .btn-view-trip:hover { background: #1a2e22; transform: translateY(-1px); }
+        .btn-view-trip:active { transform: translateY(0); }
+        
+        .btn-book-trip {
+            display: inline-block;
+            background: var(--gold);
+            color: white;
+            padding: 10px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-family: 'Outfit', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            transition: background 0.2s, transform 0.1s;
+        }
+        .btn-book-trip:hover { background: #a87830; transform: translateY(-1px); }
+        .btn-booked { background: var(--forest-l); color: var(--forest); pointer-events: none; }
+
+        /* EMPTY STATE */
+        .empty-state{text-align:center;padding:70px 40px;color:var(--muted)}
+        .empty-icon{font-size:52px;margin-bottom:16px;opacity:0.45}
+        .empty-state h3{font-family:'Playfair Display',serif;font-size:26px;color:var(--forest);margin-bottom:8px}
+        .empty-state p{font-size:14px}
+        .btn-scroll-up{display:inline-flex;align-items:center;gap:8px;background:var(--forest);color:white;border:none;border-radius:10px;padding:12px 24px;font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;cursor:pointer;margin-top:20px;text-decoration:none;transition:background 0.2s}
+        .btn-scroll-up:hover{background:#1a2e22}
+
+        /* SLIDING OVERLAY PAGE */
+        .sliding-overlay { position: fixed; inset: 0; background: var(--cream); z-index: 9999; transform: translateY(100%); transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1); overflow-y: auto; display: flex; flex-direction: column; }
+        .sliding-overlay.active { transform: translateY(0); }
+        .overlay-nav { padding: 30px 40px; text-align: right; position: relative; z-index: 10; }
+        .btn-close-overlay { background: rgba(36, 61, 50, 0.1); border: none; padding: 10px 20px; border-radius: 20px; font-family: 'Outfit'; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .btn-close-overlay:hover { background: var(--terra); color: white; }
+        .overlay-inner-content { padding: 60px 40px; max-width: 800px; margin: 0 auto; position: relative; z-index: 10; text-align: center; }
+        .overlay-inner-content h1 { font-family: 'Playfair Display', serif; font-size: 48px; color: var(--forest); margin-bottom: 20px; }
+        .overlay-inner-content p { font-size: 18px; line-height: 1.6; color: var(--muted); }
+        .sparkle-layer { position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity 0.5s; background-image: radial-gradient(circle, #c8923a 2px, transparent 2px), radial-gradient(circle, #c8923a 1px, transparent 1px); background-size: 80px 80px, 40px 40px; background-position: 0 0, 20px 20px; }
+        .sliding-overlay.theme-offer { background: linear-gradient(135deg, #161616 0%, #243d32 100%); }
+        .sliding-overlay.theme-offer h1, .sliding-overlay.theme-offer p { color: white; }
+        .sliding-overlay.theme-offer .btn-close-overlay { background: rgba(255,255,255,0.2); color: white; }
+        .sliding-overlay.theme-offer .sparkle-layer { opacity: 0.4; animation: sparkleAnim 8s linear infinite; }
+        @keyframes sparkleAnim { 0% { transform: translateY(0); } 100% { transform: translateY(-100px); } }
+
+        @media(max-width:650px){.trip-header{flex-direction:column}.trip-header-right{align-items:flex-start}.form-row-2{grid-template-columns:1fr}.route-group{grid-template-columns:1fr}.route-arrow{display:none}.trip-form-card{padding:24px 20px}.navbar{padding:0 20px}.nav-links .nav-link:not(.active){display:none}}
+    </style>
+</head>
+<body>
+
+<nav class="navbar" id="navbar">
+    <a class="nav-logo" href="/">
+        <span class="nav-logo-icon">🌍</span>
+        <span class="nav-logo-text">WanderSync</span>
+    </a>
+    <div class="nav-links">
+        <a href="/" class="nav-link active">Home</a>
+        <a href="/#offers" class="nav-link">Offers 🔥</a>
+        <a href="/#explore" class="nav-link">Explore</a>
+        <a href="/#my-trips" class="nav-link">My Trips <span class="nav-badge">{{ trips|length }}</span></a>
+        <a href="/documents" class="nav-link">Documents 🔒</a>
+    </div>
+    <div class="nav-right">
+        <div class="nav-trip-count"><span>{{ trips|length }}</span> trip{% if trips|length != 1 %}s{% endif %} planned</div>
+        <div class="nav-profile">
+            <span class="nav-profile-name">Traveller</span>
+            <div class="nav-avatar">T</div>
+        </div>
+    </div>
+</nav>
+
+<section class="hero" id="home">
+    <div class="hero-bg"></div>
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+        <div class="hero-eyebrow">✈️ &nbsp; Your AI Trip Planner</div>
+        <h1 class="hero-title">Plan your next<br><em>adventure</em>.</h1>
+        <p class="hero-sub">Track destinations, manage itineraries, log expenses<br>and get AI-powered packing lists — all in one place.</p>
+
+        <div class="trip-form-card">
+            <div class="form-card-header">
+                <h3>Start a New Trip</h3>
+                <p>Fill in the details and we'll set everything up for you.</p>
+            </div>
+            <form action="/add_trip" method="POST">
+                <div class="route-group">
+                    <div class="form-field">
+                        <label>🛫 From</label>
+                        <input type="text" name="origin" placeholder="e.g. Mumbai, Delhi">
+                    </div>
+                    <div class="route-arrow">→</div>
+                    <div class="form-field">
+                        <label>📍 Destination</label>
+                        <input type="text" name="destination" placeholder="e.g. Goa, Manali" required>
+                    </div>
+                </div>
+                
+                <div class="form-row-2">
+                    <div class="form-field">
+                        <label>📅 Departure Date</label>
+                        <input type="date" name="start_date" required>
+                    </div>
+                    <div class="form-field">
+                        <label>📅 Return Date</label>
+                        <input type="date" name="end_date" required>
+                    </div>
+                    <div class="form-field">
+                        <label>💰 Total Budget (₹)</label>
+                        <input type="number" name="budget" placeholder="e.g. 25000" required>
+                    </div>
+                </div>
+
+                <div class="form-field" style="margin-top:0">
+                    <label>📌 Notes / Details</label>
+                    <textarea name="notes" placeholder="Hotel bookings, contacts, visa info, reminders…"></textarea>
+                </div>
+                <button type="submit" class="btn-create-trip">＋ &nbsp;Create Trip</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="hero-scroll-cue" onclick="document.getElementById('offers').scrollIntoView({behavior:'smooth'})">
+        <span>Offers</span>
+        <span style="font-size:16px">↓</span>
+    </div>
+</section>
+
+<section class="offers-section" id="offers">
+    <div class="offers-overlay"></div>
+    <div class="offers-content">
+        <h2>Exclusive Offers 🔥</h2>
+        <p>Limited-time deals curated just for your next escape.</p>
+        <div class="offers-grid">
+            
+            <div class="offer-card">
+                <div class="offer-badge">30% OFF</div>
+                <h3>Luxury Safari Stay</h3>
+                <p>Premium air-conditioned tents near the core zone. Includes two guided jeep safaris, all meals, and a wildlife photography workshop.</p>
+                <button class="btn-offer" onclick="openOverlay('Luxury Safari Stay', 'Get 30% off your luxury tent booking. Valid for the next 48 hours! Use code SAFARI30 at checkout to claim this exclusive wildlife package.', 'offer')">View Deal</button>
+            </div>
+            
+            <div class="offer-card">
+                <div class="offer-badge">FLAT ₹5000 OFF</div>
+                <h3>Mountain Retreat</h3>
+                <p>5 nights in a boutique Manali resort with valley views. Includes a complimentary adventure sports package (paragliding & rafting).</p>
+                <button class="btn-offer" onclick="openOverlay('Manali Mountain Retreat', 'Claim your ₹5000 discount on 5-night stays. Includes free airport transfers. Use code WANDERSNOW.', 'offer')">View Deal</button>
+            </div>
+
+            <div class="offer-card">
+                <div class="offer-badge">BUY 1 GET 1</div>
+                <h3>Goa Scuba Diving</h3>
+                <p>Explore the vibrant underwater world of Grand Island. Book one scuba diving package and get your partner's dive absolutely free. Gear included.</p>
+                <button class="btn-offer" onclick="openOverlay('Goa Scuba Diving', 'Dive into the deep blue! Buy 1 Get 1 Free on all scuba packages booked this week. Underwater photos and videos included.', 'offer')">View Deal</button>
+            </div>
+
+            <div class="offer-card">
+                <div class="offer-badge">EARLY BIRD - 20%</div>
+                <h3>Rajasthan Heritage</h3>
+                <p>7-day royal circuit covering Jaipur, Jodhpur, and Udaipur. Stay in heritage havelis with traditional folk performances and guided fort tours.</p>
+                <button class="btn-offer" onclick="openOverlay('Rajasthan Heritage Tour', 'Book your royal getaway 60 days in advance and save 20% on the total package. Limited to first 50 bookings!', 'offer')">View Deal</button>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<section class="suggestions-section" id="explore">
+    <div class="suggestions-header">
+        <h2>WanderSync Picks</h2>
+        <p>Trending destinations to inspire your next adventure.</p>
+    </div>
+    
+    <div class="suggestions-track">
+        <div class="suggestion-card glass">
+            <img src="https://www.pugdundeesafaris.com/blog/wp-content/uploads/2020/03/tadoba-national-park.jpg" alt="Tiger Safari">
+            <div class="suggestion-info">
+                <span class="suggestion-tag">Wildlife</span>
+                <h4>Tadoba Andhari</h4>
+                <p>Experience the thrill of tiger sightings in the dense core zones. Known for excellent big cat visibility.</p>
+                <button class="btn-explore glass-btn" onclick="openOverlay('Tadoba Andhari Tiger Reserve', 'Best time to visit is October to June. Book safaris 120 days in advance! Click Let\'s Go to start planning.', 'suggestion')">Read More</button>
+            </div>
+        </div>
+        
+        <div class="suggestion-card glass">
+            <img src="https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=600&auto=format&fit=crop&q=80" alt="Goa Beach">
+            <div class="suggestion-info">
+                <span class="suggestion-tag">Coastal</span>
+                <h4>South Goa</h4>
+                <p>Relax on pristine beaches away from the crowds and indulge in authentic local seafood shacks.</p>
+                <button class="btn-explore glass-btn" onclick="openOverlay('South Goa Escape', 'Explore hidden beaches like Butterfly Beach and Kakolem Beach. Perfect for a quiet, scenic retreat.', 'suggestion')">Read More</button>
+            </div>
+        </div>
+
+        <div class="suggestion-card glass">
+            <img src="https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?w=600&auto=format&fit=crop&q=80" alt="Manali Mountains">
+            <div class="suggestion-info">
+                <span class="suggestion-tag">Mountain</span>
+                <h4>Manali</h4>
+                <p>Snow-capped peaks, pine forests, and thrilling adventure sports await you in the Himalayas.</p>
+                <button class="btn-explore glass-btn" onclick="openOverlay('Manali', 'Don\'t miss the Solang Valley for adventure sports or the Rohtang Pass for breathtaking snow views.', 'suggestion')">Read More</button>
+            </div>
+        </div>
+
+        <div class="suggestion-card glass">
+            <img src="https://images.unsplash.com/photo-1477587458883-47145ed94245?w=600&auto=format&fit=crop&q=80" alt="Jaipur Forts">
+            <div class="suggestion-info">
+                <span class="suggestion-tag">Heritage</span>
+                <h4>Jaipur</h4>
+                <p>Dive into royal history, majestic hilltop forts, and vibrant local bazaars filled with handicrafts.</p>
+                <button class="btn-explore glass-btn" onclick="openOverlay('Jaipur', 'Must visit: Amber Fort, Hawa Mahal, and Patrika Gate. Best explored during the cooler winter months.', 'suggestion')">Read More</button>
+            </div>
+        </div>
+        
+        <div style="min-width: 20px;"></div>
+    </div>
+</section>
+
+<section class="trips-section" id="my-trips">
+    <div class="trips-section-header">
+        <div>
+            <h2>My Trips</h2>
+            <p>Manage your itineraries, expenses &amp; packing lists.</p>
+        </div>
+        <div class="trips-count-pill">🗺️ {{ trips|length }} trip{% if trips|length != 1 %}s{% endif %}</div>
+    </div>
+
+    {% if trips %}
+    <div class="trips-grid">
+        {% for trip in trips %}
+        {% if trip.remaining_budget < 0 %}{% set status = 'over' %}{% elif trip.spent_pct > 75 %}{% set status = 'warn' %}{% else %}{% set status = 'ok' %}{% endif %}
+        <article class="trip-card">
+            <div class="trip-header">
+                <div class="trip-title-block">
+                    <h3>{% if trip.origin %}<span class="trip-origin-arrow">{{ trip.origin }} → </span>{% endif %}{{ trip.destination }}</h3>
+                    {% if trip.dates %}<span class="trip-dates">📅 {{ trip.dates }}</span>{% endif %}
+                </div>
+                <div class="trip-header-right">
+                    <div>
+                        <div class="budget-meta-line">Budget ₹{{ "{:,}".format(trip.budget) }} · Spent ₹{{ "{:,}".format(trip.total_spent) }}</div>
+                        <div class="budget-remaining {{ status }}">{% if trip.remaining_budget < 0 %}⚠ Over ₹{{ "{:,}".format(trip.remaining_budget|abs) }}{% else %}₹{{ "{:,}".format(trip.remaining_budget) }} left{% endif %}</div>
+                        <div class="progress-bar-wrap"><div class="progress-bar-fill {{ status }}" style="width:{{ trip.spent_pct }}%"></div></div>
+                        <div class="budget-pct">{{ trip.spent_pct }}% spent</div>
+                    </div>
+                    <form action="/delete_trip/{{ trip.id }}" method="POST" onsubmit="return confirm('Delete this trip?')">
+                        <button type="submit" class="btn-delete-trip">🗑 Delete</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="trip-footer">
+                {% if trip.booking %}
+                    <span class="btn-book-trip btn-booked">✓ Booked</span>
+                {% else %}
+                    <a href="/book/{{ trip.id }}" class="btn-book-trip">Book Trip ✈️</a>
+                {% endif %}
+                <a href="/trip/{{ trip.id }}" class="btn-view-trip">View Trip Details →</a>
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">🗺️</div>
+        <h3>No trips planned yet</h3>
+        <p>Use the form above to create your first adventure.</p>
+        <a href="#home" class="btn-scroll-up" onclick="window.scrollTo({top:0,behavior:'smooth'});return false;">↑ Plan a Trip</a>
+    </div>
+    {% endif %}
+</section>
+
+<div class="sliding-overlay" id="slidingOverlay">
+    <div class="sparkle-layer" id="sparkleLayer"></div>
+    <div class="overlay-nav">
+        <button class="btn-close-overlay" onclick="closeOverlay()">✕ Close</button>
+    </div>
+    <div class="overlay-inner-content">
+        <h1 id="overlayTitle">Title</h1>
+        <p id="overlayText">Details will appear here...</p>
+        <button class="btn-create-trip" onclick="fillFormAndClose()" style="max-width: 250px; margin: 40px auto 0;">Plan This Trip Now</button>
+    </div>
+</div>
+
+<script>
+    // Navbar scroll effect
+    const navbar = document.getElementById('navbar');
+    window.addEventListener('scroll', () => {
+        navbar.classList.toggle('scrolled', window.scrollY > 60);
+    });
+
+    // Overlay Logic
+    const overlay = document.getElementById('slidingOverlay');
+    const overlayTitle = document.getElementById('overlayTitle');
+    const overlayText = document.getElementById('overlayText');
+    let currentDestination = "";
+
+    function openOverlay(title, text, type) {
+        overlayTitle.innerText = title;
+        overlayText.innerText = text;
+        
+        currentDestination = title.replace(" Escape", "").replace(" Tour", "").replace(" Stay", "");
+        
+        if (type === 'offer') {
+            overlay.classList.add('theme-offer');
+        } else {
+            overlay.classList.remove('theme-offer');
+        }
+        
+        overlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeOverlay() {
+        overlay.classList.remove('active');
+        document.body.style.overflow = 'auto';
+    }
+
+    function fillFormAndClose() {
+        closeOverlay();
+        const destInput = document.querySelector('input[name="destination"]');
+        if (destInput && currentDestination) {
+            destInput.value = currentDestination;
+            setTimeout(() => {
+                destInput.style.backgroundColor = 'var(--gold-l)';
+                setTimeout(() => destInput.style.backgroundColor = 'var(--cream)', 800);
+            }, 600); 
+            document.getElementById('home').scrollIntoView({ behavior: 'smooth' });
+        }
+    }
+    // --- SCROLL PRESERVATION ---
+    // 1. Restore scroll position instantly if it exists
+    const savedScroll = sessionStorage.getItem('WanderSyncScroll');
+    if (savedScroll !== null) {
+        window.scrollTo(0, parseInt(savedScroll, 10));
+        sessionStorage.removeItem('WanderSyncScroll'); // clean up after restoring
+    }
+
+    // 2. Save scroll position right before the page reloads
+    window.addEventListener('beforeunload', () => {
+        sessionStorage.setItem('WanderSyncScroll', window.scrollY);
+    });
+</script>
+</body>
+</html>

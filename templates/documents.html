@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WanderSync — Travel Documents</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        :root{
+            --cream:#f9f5ef;--paper:#fff;
+            --terra:#c0614a;--terra-d:#9e4a36;--terra-l:#f2ddd7;
+            --forest:#243d32;--forest-l:#d0ddd9;
+            --gold:#c8923a;--gold-l:#f5e9d2;
+            --ink:#161616;--muted:#78706a;--border:#e4dcd2;
+            --nav-h:68px;
+        }
+        body{background:var(--cream);color:var(--ink);font-family:'Outfit',sans-serif;font-weight:400;min-height:100vh;display:flex;flex-direction:column;}
+        
+        .navbar{position:fixed;top:0;left:0;right:0;height:var(--nav-h);z-index:100;display:flex;align-items:center;padding:0 40px;background:rgba(36,61,50,0.97);border-bottom:1px solid rgba(255,255,255,0.08);}
+        .nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;margin-right:48px;flex-shrink:0}
+        .nav-logo-icon{font-size:22px}
+        .nav-logo-text{font-family:'Playfair Display',serif;font-size:22px;font-weight:900;color:#fff;letter-spacing:-0.3px}
+        .nav-links{display:flex;align-items:center;gap:4px;flex:1}
+        .nav-link{text-decoration:none;color:rgba(255,255,255,0.75);font-size:13.5px;font-weight:500;padding:7px 16px;border-radius:8px;transition:0.2s;}
+        .nav-link:hover, .nav-link.active{color:#fff;background:rgba(255,255,255,0.12)}
+        .nav-right{display:flex;align-items:center;gap:14px;flex-shrink:0}
+        .nav-profile{display:flex;align-items:center;gap:9px;cursor:pointer;padding:5px 5px 5px 12px;border-radius:40px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);transition:0.2s}
+        .nav-profile-name{font-size:13px;color:rgba(255,255,255,0.85);font-weight:500}
+        .nav-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--terra) 0%,var(--gold) 100%);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:white}
+        
+        .page-content { padding: 120px 40px 60px; max-width: 1000px; margin: 0 auto; flex: 1; width: 100%; }
+        .page-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 30px; border-bottom: 1px solid var(--border); padding-bottom: 20px; }
+        .page-header h1 { font-family: 'Playfair Display', serif; font-size: 38px; color: var(--forest); }
+        .page-header p { color: var(--muted); margin-top: 5px; }
+        
+        .lock-container { display: flex; align-items: center; justify-content: center; min-height: 60vh; }
+        .lock-card { background: rgba(255,255,255,0.6); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.8); border-radius: 20px; padding: 50px; text-align: center; max-width: 400px; width: 100%; box-shadow: 0 20px 40px rgba(0,0,0,0.05); }
+        .lock-icon { font-size: 48px; margin-bottom: 20px; display: inline-block; }
+        .lock-card h2 { font-family: 'Playfair Display', serif; font-size: 26px; color: var(--forest); margin-bottom: 10px; }
+        .lock-card p { font-size: 14px; color: var(--muted); margin-bottom: 30px; }
+        .pwd-input { width: 100%; padding: 14px; border: 1.5px solid var(--border); border-radius: 10px; font-family: 'Outfit'; font-size: 16px; text-align: center; outline: none; transition: 0.2s; margin-bottom: 15px; }
+        .pwd-input:focus { border-color: var(--forest); }
+        .btn-unlock { width: 100%; background: var(--forest); color: white; border: none; padding: 14px; border-radius: 10px; font-weight: 600; cursor: pointer; transition: 0.2s; font-family: 'Outfit'; font-size: 15px; }
+        .btn-unlock:hover { background: #1a2e22; }
+        
+        .flash-msg { color: var(--terra); font-size: 13px; margin-bottom: 15px; font-weight: 600; text-align: center; display: block; }
+        .flash-success { color: var(--forest); }
+
+        /* UPLOAD STRIP */
+        .upload-strip { background: rgba(36,61,50,0.04); border: 1px dashed rgba(36,61,50,0.2); border-radius: 12px; padding: 20px; margin-bottom: 30px; display: flex; align-items: center; justify-content: space-between; }
+        .upload-strip input[type="file"] { font-family: 'Outfit'; font-size: 13px; color: var(--muted); }
+        .upload-strip input[type="file"]::file-selector-button { background: white; border: 1px solid var(--border); padding: 8px 14px; border-radius: 8px; font-family: 'Outfit'; font-weight: 500; cursor: pointer; margin-right: 12px; transition: 0.2s; }
+        .upload-strip input[type="file"]::file-selector-button:hover { border-color: var(--forest); color: var(--forest); }
+        .btn-upload { background: var(--forest); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-family: 'Outfit'; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .btn-upload:hover { background: #1a2e22; }
+
+        .docs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 24px; }
+        .doc-card { background: var(--paper); border: 1px solid var(--border); border-radius: 16px; padding: 24px; display: flex; align-items: flex-start; gap: 16px; transition: 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.02); }
+        .doc-card:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(0,0,0,0.06); border-color: var(--gold-l); }
+        .doc-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+        .icon-pdf { background: rgba(192,97,74,0.1); color: var(--terra); }
+        .icon-img { background: rgba(36,61,50,0.1); color: var(--forest); }
+        .doc-info { flex: 1; overflow: hidden; }
+        .doc-name { font-weight: 600; font-size: 15px; color: var(--ink); margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .doc-meta { font-size: 12px; color: var(--muted); display: flex; gap: 10px; }
+        .btn-lock { background: rgba(192,97,74,0.1); color: var(--terra-d); border: 1px solid rgba(192,97,74,0.2); padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; font-family: 'Outfit'; font-size: 13px; }
+        .btn-lock:hover { background: var(--terra); color: white; }
+        
+        .doc-actions { margin-top: 14px; display: flex; gap: 15px; align-items: center; }
+        .btn-action { font-size: 12px; font-weight: 600; color: var(--forest); text-decoration: none; border-bottom: 1px solid transparent; transition: 0.2s; }
+        .btn-action:hover { border-bottom-color: var(--forest); }
+        .btn-delete-doc { background: none; border: none; color: var(--muted); font-size: 12px; font-family: 'Outfit'; cursor: pointer; transition: 0.2s; }
+        .btn-delete-doc:hover { color: var(--terra); text-decoration: underline; }
+        
+        .empty-docs { text-align: center; padding: 60px 20px; color: var(--muted); grid-column: 1 / -1; }
+        .empty-docs span { font-size: 40px; margin-bottom: 15px; display: block; opacity: 0.5; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar">
+    <a class="nav-logo" href="/">
+        <span class="nav-logo-icon">🌍</span>
+        <span class="nav-logo-text">WanderSync</span>
+    </a>
+    <div class="nav-links">
+        <a href="/" class="nav-link">Home</a>
+        <a href="/#offers" class="nav-link">Offers 🔥</a>
+        <a href="/#explore" class="nav-link">Explore</a>
+        <a href="/#my-trips" class="nav-link">My Trips</a>
+        <a href="/documents" class="nav-link active">Documents 🔒</a>
+    </div>
+    <div class="nav-right">
+        <div class="nav-profile">
+            <span class="nav-profile-name">Traveller</span>
+            <div class="nav-avatar">T</div>
+        </div>
+    </div>
+</nav>
+
+<div class="page-content">
+    {% if not unlocked %}
+    <div class="lock-container">
+        <div class="lock-card">
+            <span class="lock-icon">🔐</span>
+            <h2>Travel Vault</h2>
+            <p>Enter your master password to access your passports, visas, and tickets.</p>
+            
+            {% with messages = get_flashed_messages() %}
+              {% if messages %}
+                {% for message in messages %}
+                  <div class="flash-msg">{{ message }}</div>
+                {% endfor %}
+              {% endif %}
+            {% endwith %}
+
+            <form action="/unlock_docs" method="POST">
+                <input type="password" name="password" class="pwd-input" placeholder="Password" required>
+                <button type="submit" class="btn-unlock">Unlock Vault</button>
+            </form>
+        </div>
+    </div>
+
+    {% else %}
+    <div class="page-header">
+        <div>
+            <h1>Travel Vault</h1>
+            <p>Secure storage for your essential trip documents.</p>
+        </div>
+        <form action="/lock_docs" method="POST">
+            <button type="submit" class="btn-lock">🔒 Lock Vault</button>
+        </form>
+    </div>
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        {% for message in messages %}
+            <div class="flash-msg flash-success">{{ message }}</div>
+        {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <form action="/upload_doc" method="POST" enctype="multipart/form-data" class="upload-strip">
+        <input type="file" name="document" accept=".pdf,.png,.jpg,.jpeg" required>
+        <button type="submit" class="btn-upload">↑ Upload to Vault</button>
+    </form>
+
+    <div class="docs-grid">
+        {% for doc in documents %}
+        <div class="doc-card">
+            <div class="doc-icon {% if doc.file_type == 'pdf' %}icon-pdf{% else %}icon-img{% endif %}">
+                {% if doc.file_type == 'pdf' %}📄{% else %}🖼️{% endif %}
+            </div>
+            <div class="doc-info">
+                <div class="doc-name" title="{{ doc.original_name }}">{{ doc.original_name }}</div>
+                <div class="doc-meta">
+                    <span>{{ doc.size_kb }} KB</span>
+                    <span>•</span>
+                    <span>{{ doc.upload_date.strftime('%b %d, %Y') }}</span>
+                </div>
+                <div class="doc-actions">
+                    <a href="/download_doc/{{ doc.id }}" class="btn-action">Download ↓</a>
+                    <form action="/delete_doc/{{ doc.id }}" method="POST" onsubmit="return confirm('Permanently delete this document?');" style="display:inline;">
+                        <button type="submit" class="btn-delete-doc">Delete</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="empty-docs">
+            <span>📁</span>
+            <h3>No documents uploaded</h3>
+            <p>Upload your tickets, passports, and visas above.</p>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+
+</body>
+</html>

@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book {{ trip.destination }} — WanderSync</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;0,900;1,600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *, ::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --cream: #f9f5ef; --paper: #ffffff;
+            --terra: #c0614a; --terra-d: #9e4a36; --terra-l: #f2ddd7;
+            --forest: #243d32; --forest-l: #d0ddd9;
+            --gold: #c8923a; --gold-l: #f5e9d2;
+            --ink: #161616; --muted: #78706a; --border: #e4dcd2;
+            --nav-h: 68px;
+        }
+        
+        body { background: var(--cream); color: var(--ink); font-family: 'Outfit', sans-serif; min-height: 100vh; display: flex; flex-direction: column; }
+
+        /* NAVBAR REUSE */
+        .navbar{position:fixed;top:0;left:0;right:0;height:var(--nav-h);z-index:100;display:flex;align-items:center;padding:0 40px;background:rgba(36,61,50,0.97);border-bottom:1px solid rgba(255,255,255,0.08);}
+        .nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;margin-right:48px;flex-shrink:0}
+        .nav-logo-icon{font-size:22px}
+        .nav-logo-text{font-family:'Playfair Display',serif;font-size:22px;font-weight:900;color:#fff;letter-spacing:-0.3px}
+        .nav-links{display:flex;align-items:center;gap:4px;flex:1}
+        .nav-link{text-decoration:none;color:rgba(255,255,255,0.75);font-size:13.5px;font-weight:500;padding:7px 16px;border-radius:8px;transition:0.2s;}
+        .nav-link:hover, .nav-link.active{color:#fff;background:rgba(255,255,255,0.12)}
+        
+        .booking-container { display: flex; flex: 1; margin-top: var(--nav-h); }
+        
+        /* LEFT SIDE: TRIP SUMMARY */
+        .summary-panel { flex: 1; background: url('https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&q=80&w=1000') center/cover; position: relative; padding: 60px; color: white; display: flex; flex-direction: column; justify-content: space-between; }
+        .summary-panel::before { content: ''; position: absolute; inset: 0; background: linear-gradient(to right, rgba(36,61,50,0.95), rgba(36,61,50,0.8)); }
+        .summary-content { position: relative; z-index: 2; max-width: 400px; }
+        .summary-content h1 { font-family: 'Playfair Display', serif; font-size: 3.5rem; line-height: 1.1; margin-bottom: 10px; }
+        .summary-content .dates { color: var(--gold-l); font-size: 1.1rem; font-weight: 500; letter-spacing: 1px; margin-bottom: 40px; }
+        
+        .trip-detail-list { list-style: none; display: flex; flex-direction: column; gap: 20px; }
+        .trip-detail-list li { display: flex; flex-direction: column; gap: 4px; padding-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.2); }
+        .detail-label { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; color: rgba(255,255,255,0.6); }
+        .detail-value { font-size: 1.3rem; font-family: 'Playfair Display', serif; }
+
+        .back-link { position: relative; z-index: 2; color: white; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; font-weight: 500; transition: 0.2s; }
+        .back-link:hover { color: var(--gold); transform: translateX(-5px); }
+
+        /* RIGHT SIDE: BOOKING FORM */
+        .form-panel { flex: 1.2; padding: 60px 80px; background: var(--cream); overflow-y: auto; }
+        .form-header { margin-bottom: 40px; }
+        .form-header h2 { font-family: 'Playfair Display', serif; font-size: 2.5rem; color: var(--forest); margin-bottom: 8px; }
+        .form-header p { color: var(--muted); font-size: 1.1rem; }
+        
+        .booking-form { display: flex; flex-direction: column; gap: 24px; }
+        .form-group { display: flex; flex-direction: column; gap: 8px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .form-group label { font-size: 0.85rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+        
+        select, input[type="number"] { width: 100%; padding: 14px 16px; border: 1.5px solid var(--border); border-radius: 12px; font-family: 'Outfit', sans-serif; font-size: 1rem; color: var(--ink); background: white; outline: none; transition: border-color 0.2s; appearance: none; }
+        select:focus, input[type="number"]:focus { border-color: var(--forest); }
+        
+        /* Custom Select Arrow */
+        .select-wrapper { position: relative; }
+        .select-wrapper::after { content: '▼'; position: absolute; right: 16px; top: 50%; transform: translateY(-50%); font-size: 0.8rem; color: var(--muted); pointer-events: none; }
+
+        .price-box { background: var(--forest-l); padding: 24px; border-radius: 16px; display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+        .price-box-label { color: var(--forest); font-weight: 600; }
+        .price-box-value { font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 700; color: var(--forest); }
+        
+        .btn-confirm { background: var(--forest); color: white; border: none; padding: 18px; border-radius: 12px; font-family: 'Outfit', sans-serif; font-size: 1.1rem; font-weight: 600; cursor: pointer; transition: 0.2s; width: 100%; margin-top: 20px; }
+        .btn-confirm:hover { background: #1a2e22; transform: translateY(-2px); box-shadow: 0 10px 20px rgba(36,61,50,0.15); }
+
+        @media (max-width: 900px) {
+            .booking-container { flex-direction: column; }
+            .summary-panel { padding: 40px; }
+            .form-panel { padding: 40px; }
+            .form-row { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <a class="nav-logo" href="/">
+            <span class="nav-logo-icon">🌍</span>
+            <span class="nav-logo-text">WanderSync</span>
+        </a>
+        <div class="nav-links">
+            <a href="/" class="nav-link">Home</a>
+            <a href="/#offers" class="nav-link">Offers 🔥</a>
+            <a href="/documents" class="nav-link">Documents 🔒</a>
+        </div>
+    </nav>
+
+    <div class="booking-container">
+        
+        <div class="summary-panel">
+            <div class="summary-content">
+                <a href="/trip/{{ trip.id }}" class="back-link">← Back to Trip Details</a>
+                <div style="margin-top: 60px;">
+                    <h1>{{ trip.destination }}</h1>
+                    <div class="dates">{{ trip.dates }}</div>
+                    
+                    <ul class="trip-detail-list">
+                        <li>
+                            <span class="detail-label">Departure From</span>
+                            <span class="detail-value">{{ trip.origin if trip.origin else 'Not specified' }}</span>
+                        </li>
+                        <li>
+                            <span class="detail-label">Current Trip Budget</span>
+                            <span class="detail-value">₹{{ "{:,}".format(trip.budget) }}</span>
+                        </li>
+                        <li>
+                            <span class="detail-label">Remaining Funds</span>
+                            <span class="detail-value" style="color: var(--gold-l);">₹{{ "{:,}".format(trip.remaining_budget) }}</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-panel">
+            <div class="form-header">
+                <h2>Secure Your Booking</h2>
+                <p>Customize your travel options. This will automatically log the expense to your trip budget.</p>
+            </div>
+
+            <form action="/process_booking/{{ trip.id }}" method="POST" class="booking-form">
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Travel Mode</label>
+                        <div class="select-wrapper">
+                            <select name="travel_mode" id="travelMode" onchange="calculatePrice()">
+                                <option value="Flight" data-price="5500">✈️ Flight</option>
+                                <option value="Train" data-price="1800">🚆 Train</option>
+                                <option value="Bus" data-price="1200">🚌 Luxury Bus</option>
+                                <option value="Cab" data-price="4000">🚕 Private Cab</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Passengers / Tickets</label>
+                        <input type="number" name="passengers" id="passengers" value="1" min="1" max="10" onchange="calculatePrice()">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Accommodation Preference</label>
+                    <div class="select-wrapper">
+                        <select name="accommodation" id="accommodation" onchange="calculatePrice()">
+                            <option value="Premium Hotel" data-price="4500">🏨 Premium Hotel (₹4,500/night)</option>
+                            <option value="Boutique Resort" data-price="6000">🌴 Boutique Resort (₹6,000/night)</option>
+                            <option value="Backpacker Hostel" data-price="1000">🎒 Backpacker Hostel (₹1,000/night)</option>
+                            <option value="I will book myself" data-price="0">❌ I will book my own stay</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Payment Method</label>
+                    <div class="select-wrapper">
+                        <select name="payment_method" required>
+                            <option value="Credit Card">💳 Credit / Debit Card</option>
+                            <option value="UPI">📱 UPI / GPay</option>
+                            <option value="Net Banking">🏦 Net Banking</option>
+                        </select>
+                    </div>
+                </div>
+
+                <input type="hidden" name="estimated_cost" id="hiddenCost" value="10000">
+
+                <div class="price-box">
+                    <div class="price-box-label">Estimated Cost</div>
+                    <div class="price-box-value" id="displayCost">₹10,000</div>
+                </div>
+
+                <button type="submit" class="btn-confirm">Confirm & Pay</button>
+            </form>
+        </div>
+        
+    </div>
+
+    <script>
+        // Simple script to make the form feel interactive by calculating a dummy price
+        function calculatePrice() {
+            const travelSelect = document.getElementById('travelMode');
+            const travelPrice = parseInt(travelSelect.options[travelSelect.selectedIndex].getAttribute('data-price'));
+            
+            const accSelect = document.getElementById('accommodation');
+            const accPrice = parseInt(accSelect.options[accSelect.selectedIndex].getAttribute('data-price'));
+            
+            const passengers = parseInt(document.getElementById('passengers').value) || 1;
+            
+            // Formula: (Travel per person * Passengers) + (Accommodation * Passengers)
+            // Note: We just multiply accommodation by passengers for simplicity here
+            const total = (travelPrice * passengers) + (accPrice * passengers);
+            
+            // Update UI
+            document.getElementById('displayCost').innerText = '₹' + total.toLocaleString('en-IN');
+            // Update hidden input for Flask form submission
+            document.getElementById('hiddenCost').value = total;
+        }
+
+        // Run once on load to set initial state
+        window.onload = calculatePrice;
+    </script>
+</body>
+</html>
